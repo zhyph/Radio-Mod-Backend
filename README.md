@@ -1,5 +1,5 @@
 # Radio-Mod-Backend
-Backend files for hosting your own Mordhau Radio Mod server!
+Backend files for hosting your own [Mordhau Radio Mod](https://mod.io/g/mordhau/m/radio-mod) server!
 
 ## Prerequisites
 
