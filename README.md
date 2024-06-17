@@ -3,7 +3,7 @@ Backend files for hosting your own [Mordhau Radio Mod](https://mod.io/g/mordhau/
 
 ## Prerequisites
 
-In order to use the download fallback method (which is necessary for downloading age-restricted YouTube videos), [YT-DLP](https://github.com/yt-dlp/yt-dlp) needs to be installed on your backend server
+In order to use the download fallback method (which is necessary for downloading age-restricted YouTube videos), [YT-DLP](https://github.com/yt-dlp/yt-dlp) needs to be installed on your backend server.
 
 ## Installation
 
