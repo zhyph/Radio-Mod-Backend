@@ -203,7 +203,7 @@ func Download(videoID string, useProxies bool, proxies *[]string) DownloadResult
 	return returnResult
 }
 
-func DownloadFallback(videoID string, useProxies bool, proxies *[]string) DownloadResult {
+func DownloadFallback(videoID string, useProxies bool, proxies *[]string, cookiesPath string) DownloadResult {
 	returnResult := DownloadResult{Valid: false, Uuid: "", MaxRes: false, Proxy: "", Error: ""}
 
 	var result goutubedl.Result
@@ -213,9 +213,9 @@ func DownloadFallback(videoID string, useProxies bool, proxies *[]string) Downlo
 	if useProxies {
 		proxyUrl := rotateProxy(proxies)
 		returnResult.Proxy = proxyUrl
-		result, goutubeErr = goutubedl.New(context.Background(), videoID, goutubedl.Options{ProxyUrl: proxyUrl})
+		result, goutubeErr = goutubedl.New(context.Background(), videoID, goutubedl.Options{ProxyUrl: proxyUrl, Cookies: cookiesPath})
 	} else {
-		result, goutubeErr = goutubedl.New(context.Background(), videoID, goutubedl.Options{})
+		result, goutubeErr = goutubedl.New(context.Background(), videoID, goutubedl.Options{Cookies: cookiesPath})
 	}
 
 	if goutubeErr != nil {

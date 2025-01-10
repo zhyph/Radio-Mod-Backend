@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	discord "com.radio/discord"
 	download "com.radio/download"
 	search "com.radio/search"
 	"github.com/gin-gonic/gin"
@@ -28,6 +27,7 @@ type Config struct {
 	UseFallback      bool     `json:"useFallback"`
 	BannedTerms      []string `json:"bannedTerms"`
 	BannedPlayfabIDs []string `json:"bannedPlayfabIDs"`
+	CookieFile       string   `json:"cookieFile"`
 }
 
 func DefaultConfig() *Config {
@@ -40,6 +40,7 @@ func DefaultConfig() *Config {
 		UseFallback:      true,
 		BannedTerms:      []string{"fart", "idiot"},
 		BannedPlayfabIDs: []string{"playfabId01", "playfabId02"},
+		CookieFile:       "",
 	}
 }
 
@@ -136,7 +137,7 @@ func postQueue(c *gin.Context) {
 			fmt.Println("Success: " + requestData.VideoTitle + " ~ " + requestData.ServerName + " ~ [" + requestData.PlayfabId + "]")
 		} else if config.UseFallback {
 			fmt.Println("\x1b[31mFailed (reverting to fallback): " + requestData.VideoTitle + " ~ " + requestData.ServerName + " ~ [" + requestData.PlayfabId + "]" + " ~ " + downloadResult.Error + " ~ " + downloadResult.Proxy + "\x1b[0m")
-			downloadResult = download.DownloadFallback(requestData.VideoId, config.UseProxies, &config.Proxies)
+			downloadResult = download.DownloadFallback(requestData.VideoId, config.UseProxies, &config.Proxies, config.CookieFile)
 			if downloadResult.Valid {
 				fmt.Println("Success (fallback): " + requestData.VideoTitle + " ~ " + requestData.ServerName + " ~ [" + requestData.PlayfabId + "]")
 			} else {
@@ -146,14 +147,16 @@ func postQueue(c *gin.Context) {
 			fmt.Println("\x1b[31mFailed: " + requestData.VideoTitle + " ~ " + requestData.ServerName + " ~ [" + requestData.PlayfabId + "]" + " ~ " + downloadResult.Error + " ~ " + downloadResult.Proxy + "\x1b[0m")
 		}
 
-		if downloadResult.Valid && requestData.ServerWebhook != nil {
-			go discord.Webhooks(requestData.PlayfabId, *requestData.PlayerName, requestData.VideoTitle, requestData.VideoId, requestData.ServerName, *requestData.ServerWebhook)
-		}
+		// if downloadResult.Valid && requestData.ServerWebhook != nil {
+		// 	go discord.Webhooks(requestData.PlayfabId, *requestData.PlayerName, requestData.VideoTitle, requestData.VideoId, requestData.ServerName, *requestData.ServerWebhook)
+		// }
 
 		uuid := fmt.Sprintf("%s:%s/%s", config.Endpoint, config.Port, downloadResult.Uuid)
 
-		result <- gin.H{"valid": downloadResult.Valid, "videoId": requestData.VideoId, "uuid": uuid,
-			"maxRes": downloadResult.MaxRes, "videoTitle": requestData.VideoTitle}
+		result <- gin.H{
+			"valid": downloadResult.Valid, "videoId": requestData.VideoId, "uuid": uuid,
+			"maxRes": downloadResult.MaxRes, "videoTitle": requestData.VideoTitle,
+		}
 	}(c.Copy())
 
 	c.JSON(http.StatusOK, <-result)
@@ -282,7 +285,7 @@ func main() {
 	router.Static("/", downloadDir)
 	router.POST("/search", postSearch)
 	router.POST("/queue", postQueue)
-	router.POST("/playlist", postPlaylist)
+	// router.POST("/playlist", postPlaylist)
 	router.Use(corsMiddleware())
 	fmt.Println("Radio Mod backend running on port", config.Port)
 	router.Run(":" + config.Port)
